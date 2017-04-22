@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Hello world</title>
+</head>
+<body>
+<h1>Currency Facts</h1>
+<select id="currency">
+  <option>Select a country</option>
+  <option value="CAN">Canada</option>
+  <option value="SPA">Spain</option>
+  <option value="FRA">France</option>
+</select>
+<p id="contents">loading</p>
+
+<script type="text/javascript">
+
+  document.getElementById('currency').addEventListener('change', function (evt) {
+    var country = evt.target.value;
+    fetch(`/currencies/${country}`).then(function (res) {
+      return res.json().then(function (contents) {
+        var string = `1 USD = ${contents.value} ${contents.currency}`;
+        document.getElementById('contents').innerHTML = string;
+      });
+    });
+  });
+  
+
+</script>
+</body>
+</html>
