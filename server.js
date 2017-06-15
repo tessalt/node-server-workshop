@@ -14,7 +14,12 @@ var currencies = {
 function getLiveValue(symbol, callback) {
   request.get('http://api.fixer.io/latest?base=USD', function(error, response, body) {
     var rates = JSON.parse(body).rates;
-    callback(rates[symbol]);
+    var value = rates[symbol]
+    if (symbol === JSON.parse(body).base) {
+      value = 1
+    }
+
+    callback(value);
   });
 }
 
