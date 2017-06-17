@@ -211,18 +211,18 @@ This regex will match URLs with the format /currencies/[string] and will remembe
 
 # Dynamic Routing cont'd
 
-* Say we have an object that stores the currency symbol for countries:
+* Say we have an object that stores the values for currencies:
 
 ```
 var currencies = {
-  'CAN': 'CAD',
-  'USA': 'USD',
-  'FRA': 'EUR',
+  'CAD': 1.3,
+  'GBP': 0.78,
+  'JPY': 110.3,
 }
 
 ```
 
-* We want to return the currency name for the country code in the URL
+* We want to return the currency value for the currency code in the URL
 
 ---
 
@@ -232,8 +232,8 @@ var currencies = {
   var match = request.url.match(re);
 
   if (match) {
-    var currency = currencies[match[1]];
-    response.write(currency);
+    var value = currencies[match[1]];
+    response.write(value);
     response.end();
   } else {
     response.write('not found');
@@ -260,36 +260,52 @@ var currencies = {
 
 ---
 
-# Connecting to an API
+# Parsing a CSV
 
-* we can bring in the `request` module to make HTTP requests _from_ our server
+* we can bring in the `node-csv` module to parse a CSV file with more data
 
 ```
-var request = require('request');
+var csv = require('node-csv').createParser();
 
-function getLiveValue(symbol, callback) {
-  request.get('http://api.fixer.io/latest?base=USD', function (error, response, body) {
-    var rates = JSON.parse(body).rates;
-    callback(rates[symbol]);
+csv.mapFile('rates.csv', function (error, content) {
+
+});
+
+```
+
+---
+
+# Filtering through data
+
+Since the csv is giving us an array, we need to loop through it to find the row with the matching currency code. 
+
+```
+csv.mapFile('rates.csv', function (error, content) {
+  var currency = content.find(function (row) {
+    return match[1].toUpperCase() === row.currency;
   });
-}
+});
 ```
 
 ---
 
 # Returning HTML
 
-
 ```
-getLiveValue(currency, function (rate) {
-  fs.readFile('./currency.html', 'utf-8', function (error, contents) {
-    var string = `The currency for ${country} is ${currency}. <br> 1 USD = ${rate} ${currency}`;
+csv.mapFile('rates.csv', function (error, content) {
+  var currency = content.find(function (row) {
+    return match[1].toUpperCase() === row.currency;
+  });
+  if (currency) {
+    var string = `the value for ${match[1]} is ${currency.value}`;
     var output = contents.replace('$contents', string);
     response.write(output, 'utf-8');
     response.end();
-  });
+  } else {
+    response.write('Not a valid country code')
+    response.end();
+  }
 });
-
 ```
 
 ---
@@ -297,14 +313,17 @@ getLiveValue(currency, function (rate) {
 # Returning JSON
 
 ```
-getLiveValue(currency, function (rate) {
-  var output = JSON.stringify({
-    currency: currency,
-    rate: rate,
-  });
+if (currency) {
+  var output = {
+    currency: currency.currency,
+    value: currency.value
+  }
   response.setHeader('Content-Type', 'application/json');
-  response.write(output, 'utf-8');
+  response.write(JSON.stringify(output), 'utf-8');
   response.end();
-});
+} else {
+  response.write('Not a valid country code')
+  response.end();
+}
 
 ```

@@ -4,6 +4,12 @@ var csv = require('node-csv').createParser();
 
 var server = http.createServer();
 
+var currencies = {
+  'CAD': 1.3,
+  'GBP': 0.78,
+  'JPY': 110.3,
+}
+
 var re = /^\/currencies\/(\w+)/;
 
 server.listen(8080, function () {
@@ -23,9 +29,9 @@ server.on('request', function (request, response) {
 
   if (match) {
     csv.mapFile('rates.csv', function (error, content) {
-      var currency = content.filter(function (item) {
+      var currency = content.find(function (item) {
         return match[1].toUpperCase() === item.currency;
-      })[0]
+      });
       if (currency) {
         var output = {
           currency: currency.currency,
@@ -49,16 +55,4 @@ server.on('request', function (request, response) {
     response.statusCode = 404;
     response.end();
   }
-
-  // if (request.url === '/home') {
-  //   fs.readFile('index.html', function (error, contents) {
-  //     response.write(contents);
-  //     response.end();
-  //   });
-  // } else {
-  //   response.write('Not found');
-  //   response.statusCode = 404;
-  //   response.end();
-  // }
-
 });
