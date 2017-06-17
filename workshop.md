@@ -59,6 +59,23 @@ serve static files (CSS, images, scripts) included by that HTML document
 
 ---
 
+### Example
+
+* Web browser makes request to instagram.com/tessa
+* All requests to instagram.com just get back the same index.html file
+* JavaScript in index.html makes an ajax request to "api/users/tessa" based on the browser's url
+* Server receives GET request for /api/users/tessa
+* Software running on server: 
+  * determines requested resource is a user
+  * looks in database for user with username "tessa"
+  * formats data from database as JSON
+  * sends it back to browser with `Content-type: application/json` header
+* JavaScript in the browser:
+  * receives JSON response and parses into JS objects
+  * Feeds data into react templates
+
+---
+
 ### Example 
 
 * Web browser makes a request to shopify.com/asldksj222

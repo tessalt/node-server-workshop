@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Hello World</title>
+</head>
+<body>
+<h1>Hello Nodeschool Toronto</h1>
+<p>Node HTTP server</p>
+
+<input type="text" id="currency" />
+<button type="button" id="button">Submit</button>
+
+<p id="output"></p>
+
+<script>
+
+var input = document.getElementById('currency');
+var button = document.getElementById('button');
+var output = document.getElementById('output');
+
+button.addEventListener('click', function() {
+  var url = `/currencies/${input.value}`;
+  fetch(url).then(function (response) {
+    response.json().then(function (json) {      
+      output.innerHTML = `1 USD = ${json.value} ${json.currency}`;
+    });
+  })
+});
+
+</script>
+
+</body>
+</html>
