@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Hello world</title>
+</head>
+<body>
+<h1>Currency Facts</h1>
+
+<input id="currency" type="text" />
+<input id="amount" type="text" />
+<button id="submit" type="button">Submit</button>
+
+<p id="contents"></p>
+
+<script type="text/javascript">
+
+
+var currency = document.getElementById('currency');
+var amount = document.getElementById('amount');
+
+
+  document.getElementById('submit').addEventListener('click', function (evt) {
+    var url = `/currencies/${currency.value}?value=${amount.value}`;
+
+    var input = document.getElementById('currency');
+    var country = input.value;
+    fetch(url).then(function (res) {
+      return res.json().then(function (contents) {
+        var string = `${amount.value} USD = ${contents.converted} ${contents.currency}`;
+        document.getElementById('contents').innerHTML = string;
+      });
+    });
+  });
+</script>
+</body>
+</html>

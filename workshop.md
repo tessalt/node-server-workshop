@@ -302,6 +302,7 @@ csv.mapFile('rates.csv', function (error, content) {
     response.write(output, 'utf-8');
     response.end();
   } else {
+    response.statusCode = 400;
     response.write('Not a valid country code')
     response.end();
   }
@@ -322,8 +323,118 @@ if (currency) {
   response.write(JSON.stringify(output), 'utf-8');
   response.end();
 } else {
+  response.statusCode = 400;
   response.write('Not a valid country code')
   response.end();
 }
 
+```
+
+---
+
+# Parsing a query string
+
+We can allow a consumer of our API to add more info by parsing a _query string_. 
+
+GET /currencies/JPN?value=10 will convert 10 USD to JPN
+
+To get the query string of a URL, we can call string.split with ? 
+
+```
+var query = request.url.split('?')[1];
+```
+
+---
+
+# Using querystring
+
+Bring in the node querystring module to parse the querystring into an object
+
+```
+var querystring = require('querystring');
+var query = request.url.split('?')[1];
+if (query) {
+  var input = querystring.parse(query);
+}
+```
+
+This will give us an object that looks like 
+
+```
+{
+  value: '10'
+}
+```
+
+---
+
+# Converting currency values
+
+Now we just have to mulitply the input value by the currency value
+
+```
+if (query) {
+  var input = querystring.parse(query);
+  output['converted'] = parseFloat(input.value) * currency.value;
+}
+```
+
+---
+
+# Putting the frontend and backend together
+
+Let's go back to the index.html file that gets served by the /home route and add a couple form elements and a <script> tag.
+
+```
+<input id="currency" type="text" />
+<input id="amount" type="text" />
+<button id="submit" type="button">Submit</button>
+
+<p id="contents"></p>
+
+<script type="text/javascript">
+</script>
+```
+
+---
+
+# Using `fetch` on the frontend
+
+When the button is clicked, we'll use `fetch` to call our /currencies endpoint
+
+```
+document.getElementById('submit').addEventListener('click', function () {
+  fetch(`/currencies/CDN`).then(function (res) {
+    return res.json().then(function (contents) {
+      console.log(contents);
+    });
+  });
+});
+```
+
+---
+
+# Fetching with dynamic values
+
+Get the `value`s from our form fields to construct the URL paramters and query string
+
+```
+
+var currency = document.getElementById('currency').value;
+var amount = document.getElementById('amount').value;
+
+var url = `/currencies/${currency}?value=${amount}`;
+```
+
+---
+
+# Displaying the result
+
+```
+fetch(url).then(function (res) {
+  return res.json().then(function (contents) {
+    var string = `${amount} USD = ${contents.converted} ${contents.currency}`;
+    document.getElementById('contents').innerHTML = string;
+  });
+});
 ```

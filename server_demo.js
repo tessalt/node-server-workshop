@@ -1,6 +1,7 @@
 var http = require('http');
 var fs = require('fs');
 var csv = require('node-csv').createParser();
+var querystring = require('querystring');
 
 var server = http.createServer();
 
@@ -32,15 +33,24 @@ server.on('request', function (request, response) {
       var currency = content.find(function (item) {
         return match[1].toUpperCase() === item.currency;
       });
+
       if (currency) {
         var output = {
           currency: currency.currency,
           value: currency.value
         }
+
+        var query = request.url.split('?')[1];
+        if (query) {
+          var input = querystring.parse(query);
+          output['converted'] = parseFloat(input.value) * currency.value
+        }
+
         response.setHeader('Content-Type', 'application/json');
         response.write(JSON.stringify(output), 'utf-8');
         response.end();
       } else {
+        response.statusCode = 400;
         response.write('Not a valid country code')
         response.end();
       }
@@ -51,8 +61,8 @@ server.on('request', function (request, response) {
       response.end();
     });
   } else {
-    response.write('Not found');
     response.statusCode = 404;
+    response.write('Not found');
     response.end();
   }
 });
