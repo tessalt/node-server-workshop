@@ -1,28 +1,8 @@
 var http = require('http');
 var fs = require('fs');
-var request = require('request');
+var csv = require('node-csv').createParser();
 
 var server = http.createServer();
-
-var currencies = {
-  'CAN': 'CAD',
-  'USA': 'USD',
-  'FRA': 'EUR',
-  'SPA': 'EUR'
-}
-
-function getLiveValue(symbol, callback) {
-  request.get('http://api.fixer.io/latest?base=USD', function(error, response, body) {
-    var rates = JSON.parse(body).rates;
-    var value = rates[symbol]
-    if (symbol === JSON.parse(body).base) {
-      value = 1
-    }
-
-    callback(value);
-  });
-}
-
 
 var re = /^\/currencies\/(\w+)/;
 
@@ -42,21 +22,23 @@ server.on('request', function (request, response) {
   var match = request.url.match(re);
 
   if (match) {
-    var currency = currencies[match[1].toUpperCase()];
-    if (currency) {
-      getLiveValue(currency, function (value) {
+    csv.mapFile('rates.csv', function (error, content) {
+      var currency = content.filter(function (item) {
+        return match[1].toUpperCase() === item.currency;
+      })[0]
+      if (currency) {
         var output = {
-          currency: currency,
-          value: value
+          currency: currency.currency,
+          value: currency.value
         }
         response.setHeader('Content-Type', 'application/json');
         response.write(JSON.stringify(output), 'utf-8');
         response.end();
-      })      
-    } else {
-      response.write('Not a valid country code')
-      response.end();
-    }
+      } else {
+        response.write('Not a valid country code')
+        response.end();
+      }
+    })
   } else if (request.url === '/home') {
      fs.readFile('index.html', function (error, contents) {
       response.write(contents);
@@ -78,5 +60,5 @@ server.on('request', function (request, response) {
   //   response.statusCode = 404;
   //   response.end();
   // }
- 
+
 });
